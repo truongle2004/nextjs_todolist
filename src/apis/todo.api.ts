@@ -9,23 +9,25 @@ import type {
 import { StatusEnum } from '@/enums/taskStatus.enum';
 import { TaskPriorityEnum } from '@/enums/taskPriority.enum';
 import axiosInstance from '@/utils/axiosInstance';
+import type { ApiResponse } from '@/types/apiResponse.type';
 
-// Todo APIs
-export const getAllTodos = async () => {
-  const { data } = await axiosInstance.get<{ data: Todo[] }>('/todos');
-  return data;
-};
-
-export const getTodoById = async (todoId: number) => {
-  const { data } = await axiosInstance.get<{ data: Todo }>(`/todos/${todoId}`);
-  return data;
-};
-
-export const getTodosByUserId = async (userId: number) => {
+export const getAllTodos = async (userId: number) => {
   const { data } = await axiosInstance.get<{ data: Todo[] }>(
-    `/todos/user/${userId}`
+    `/todos/${userId}`
   );
   return data;
+};
+
+export const getTodoById = async (
+  todoId: number
+): Promise<ApiResponse<Todo>> => {
+  return await axiosInstance.get(`/todos/${todoId}`);
+};
+
+export const getTodosByUserId = async (
+  userId: number
+): Promise<ApiResponse<Todo[]>> => {
+  return await axiosInstance.get(`/todos/user/${userId}`);
 };
 
 export const createTodo = async (todo: CreateTodoInput) => {
@@ -51,7 +53,6 @@ export const deleteTodo = async (todoId: number) => {
   return data;
 };
 
-// Task APIs
 export const getAllTasks = async () => {
   const { data } = await axiosInstance.get<{ data: Task[] }>('/tasks');
   return data;
@@ -62,11 +63,10 @@ export const getTaskById = async (taskId: number) => {
   return data;
 };
 
-export const getTasksByTodoId = async (todoId: number) => {
-  const { data } = await axiosInstance.get<{ data: Task[] }>(
-    `/tasks/todo/${todoId}`
-  );
-  return data;
+export const getTasksByTodoId = async (
+  todoId: number
+): Promise<ApiResponse<Task[]>> => {
+  return await axiosInstance.get(`/tasks/todo/${todoId}`);
 };
 
 export const createTask = async (task: CreateTaskInput) => {

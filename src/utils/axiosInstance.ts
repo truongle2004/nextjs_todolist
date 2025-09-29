@@ -4,6 +4,7 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  baseURL: 'http://localhost:3000/api',
 });
 
 axiosInstance.interceptors.request.use(

@@ -1,12 +1,13 @@
-import { inject, injectable } from 'tsyringe';
-import bcrypt from 'bcrypt';
-import type { IAuthService } from '../auth.service';
 import type { IAuthDb } from '@/lib/db/auth.db';
-import { PostgrestError } from '@supabase/supabase-js';
-import { logger } from '@/configs/logger.config';
-import { InvalidPasswordError, UserNotFoundError } from '@/lib/errors/auth.error';
-import type { SignupFormType } from '@/types/register.type';
+import {
+  InvalidPasswordError,
+  UserNotFoundError,
+} from '@/lib/errors/auth.error';
 import type { User } from '@/types';
+import type { SignupFormType } from '@/types/register.type';
+import bcrypt from 'bcrypt';
+import { inject, injectable } from 'tsyringe';
+import type { IAuthService } from '../auth.service';
 
 @injectable()
 export class AuthServiceImpl implements IAuthService {
@@ -22,7 +23,6 @@ export class AuthServiceImpl implements IAuthService {
       if (!isPasswordValid) {
         throw new InvalidPasswordError('Invalid password');
       }
-      // Return user data without password
       const { password: _, ...userWithoutPassword } = user;
       return userWithoutPassword as User;
     }

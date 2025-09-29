@@ -7,6 +7,6 @@ export interface ITodoDb {
   updateTodo(todo: Todo): Promise<Todo>;
   deleteTodo(todoId: number): Promise<void>;
   createTask(task: Omit<Task, 'id'>): Promise<Task>;
-  updateTask(task: Task): Promise<Task>;
+  updateTask(task: Task, id: number): Promise<Task>;
   deleteTask(taskId: number): Promise<void>;
 }

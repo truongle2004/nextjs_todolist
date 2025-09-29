@@ -2,6 +2,7 @@ import type { ISupabaseService } from '@/lib/services/supabase.service';
 import type { Task, Todo } from '@/types';
 import { inject, injectable } from 'tsyringe';
 import type { ITodoDb } from '../todo.db';
+import { logger } from '@/configs/logger.config';
 
 @injectable()
 export class TodoDbImpl implements ITodoDb {
@@ -14,7 +15,6 @@ export class TodoDbImpl implements ITodoDb {
   ) {}
 
   async getTodosByUserId(userId: number): Promise<Todo[]> {
-    console.log('userId', userId);
     const supabase = await this.supabaseService.getClient();
     const { data: todos } = await supabase
       .from(this.TODO_TABLE)
@@ -38,10 +38,7 @@ export class TodoDbImpl implements ITodoDb {
 
   async createTodo(todo: Omit<Todo, 'id'>): Promise<Todo> {
     const supabase = await this.supabaseService.getClient();
-    const { data } = await supabase
-      .from(this.TODO_TABLE)
-      .insert(todo)
-      .select();
+    const { data } = await supabase.from(this.TODO_TABLE).insert(todo).select();
     return data![0] as Todo;
   }
 
@@ -62,20 +59,20 @@ export class TodoDbImpl implements ITodoDb {
 
   async createTask(task: Omit<Task, 'id'>): Promise<Task> {
     const supabase = await this.supabaseService.getClient();
-    const { data } = await supabase
-      .from(this.TASK_TABLE)
-      .insert(task)
-      .select();
+    const { data } = await supabase.from(this.TASK_TABLE).insert(task).select();
     return data![0] as Task;
   }
 
-  async updateTask(task: Task): Promise<Task> {
+  async updateTask(task: Task, id: number): Promise<Task> {
+    const { id: _, ...updateTask } = task;
     const supabase = await this.supabaseService.getClient();
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from(this.TASK_TABLE)
-      .update(task)
-      .eq('id', task.id)
+      .update(updateTask)
+      .eq('id', id)
       .select();
+
+    console.log(error);
     return data![0] as Task;
   }
 

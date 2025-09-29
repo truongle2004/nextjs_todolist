@@ -8,7 +8,8 @@ import { useState } from 'react';
 interface TaskFormProps {
   task?: Task;
   todoId: number;
-  onSubmit: (taskData: CreateTaskInput | UpdateTaskInput) => void;
+  handleCreateTask: (taskData: CreateTaskInput) => void;
+  handleUpdateTask?: (taskData: UpdateTaskInput) => void;
   onClose: () => void;
   isLoading?: boolean;
 }
@@ -16,7 +17,8 @@ interface TaskFormProps {
 export const TaskForm: React.FC<TaskFormProps> = ({
   task,
   todoId,
-  onSubmit,
+  handleUpdateTask,
+  handleCreateTask,
   onClose,
   isLoading = false,
 }) => {
@@ -31,7 +33,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (task) {
       // Update existing task
       const updateData: UpdateTaskInput = {
@@ -43,7 +45,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
         due_date: formData.due_date || undefined,
         completed: formData.completed,
       };
-      onSubmit(updateData);
+      if (handleUpdateTask) handleUpdateTask(updateData);
     } else {
       // Create new task
       const createData: CreateTaskInput = {
@@ -54,12 +56,12 @@ export const TaskForm: React.FC<TaskFormProps> = ({
         priority: formData.priority,
         due_date: formData.due_date || undefined,
       };
-      onSubmit(createData);
+      handleCreateTask(createData);
     }
   };
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const getPriorityColor = (priority: TaskPriorityEnum) => {
@@ -89,64 +91,77 @@ export const TaskForm: React.FC<TaskFormProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">
+    <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4'>
+      <div className='bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto'>
+        <div className='flex justify-between items-center p-6 border-b border-gray-200'>
+          <h2 className='text-xl font-semibold text-gray-900'>
             {task ? 'Edit Task' : 'Create New Task'}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className='text-gray-400 hover:text-gray-600 transition-colors'
           >
             <X size={24} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className='p-6 space-y-6'>
           {/* Title */}
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor='title'
+              className='block text-sm font-medium text-gray-700 mb-1'
+            >
               Task Title *
             </label>
             <input
-              type="text"
-              id="title"
+              type='text'
+              id='title'
               value={formData.title}
               onChange={(e) => handleInputChange('title', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter task title"
+              className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+              placeholder='Enter task title'
               required
             />
           </div>
 
           {/* Description */}
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor='description'
+              className='block text-sm font-medium text-gray-700 mb-1'
+            >
               Description
             </label>
             <textarea
-              id="description"
+              id='description'
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Task description (optional)"
+              className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+              placeholder='Task description (optional)'
             />
           </div>
 
           {/* Status and Priority Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             {/* Status */}
             <div>
-              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor='status'
+                className='block text-sm font-medium text-gray-700 mb-1'
+              >
                 Status
               </label>
               <select
-                id="status"
+                id='status'
                 value={formData.status}
-                onChange={(e) => handleInputChange('status', e.target.value as StatusEnum)}
-                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${getStatusColor(formData.status)}`}
+                onChange={(e) =>
+                  handleInputChange('status', e.target.value as StatusEnum)
+                }
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${getStatusColor(
+                  formData.status
+                )}`}
               >
                 <option value={StatusEnum.TODO}>📝 To Do</option>
                 <option value={StatusEnum.IN_PROGRESS}>⏳ In Progress</option>
@@ -156,17 +171,29 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 
             {/* Priority */}
             <div>
-              <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor='priority'
+                className='block text-sm font-medium text-gray-700 mb-1'
+              >
                 Priority
               </label>
               <select
-                id="priority"
+                id='priority'
                 value={formData.priority}
-                onChange={(e) => handleInputChange('priority', Number(e.target.value) as TaskPriorityEnum)}
-                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${getPriorityColor(formData.priority)}`}
+                onChange={(e) =>
+                  handleInputChange(
+                    'priority',
+                    Number(e.target.value) as TaskPriorityEnum
+                  )
+                }
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${getPriorityColor(
+                  formData.priority
+                )}`}
               >
                 <option value={TaskPriorityEnum.LOW}>🟢 Low Priority</option>
-                <option value={TaskPriorityEnum.MEDIUM}>🟡 Medium Priority</option>
+                <option value={TaskPriorityEnum.MEDIUM}>
+                  🟡 Medium Priority
+                </option>
                 <option value={TaskPriorityEnum.HIGH}>🔴 High Priority</option>
               </select>
             </div>
@@ -174,49 +201,55 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 
           {/* Due Date */}
           <div>
-            <label htmlFor="due_date" className="block text-sm font-medium text-gray-700 mb-1">
-              <Calendar className="inline w-4 h-4 mr-1" />
+            <label
+              htmlFor='due_date'
+              className='block text-sm font-medium text-gray-700 mb-1'
+            >
+              <Calendar className='inline w-4 h-4 mr-1' />
               Due Date
             </label>
             <input
-              type="date"
-              id="due_date"
+              type='date'
+              id='due_date'
               value={formData.due_date}
               onChange={(e) => handleInputChange('due_date', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
             />
           </div>
 
-          {/* Completion Status (only for existing tasks) */}
           {task && (
-            <div className="flex items-center">
+            <div className='flex items-center'>
               <input
-                type="checkbox"
-                id="completed"
+                type='checkbox'
+                id='completed'
                 checked={formData.completed}
-                onChange={(e) => handleInputChange('completed', e.target.checked)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                onChange={(e) =>
+                  handleInputChange('completed', e.target.checked)
+                }
+                className='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
               />
-              <label htmlFor="completed" className="ml-2 block text-sm text-gray-700">
-                <CheckCircle className="inline w-4 h-4 mr-1" />
+              <label
+                htmlFor='completed'
+                className='ml-2 block text-sm text-gray-700'
+              >
+                <CheckCircle className='inline w-4 h-4 mr-1' />
                 Mark as completed
               </label>
             </div>
           )}
 
-          {/* Form Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+          <div className='flex justify-end gap-3 pt-4 border-t border-gray-200'>
             <button
-              type="button"
+              type='button'
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className='px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
               disabled={isLoading}
             >
               Cancel
             </button>
             <button
-              type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              type='submit'
+              className='px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed'
               disabled={isLoading || !formData.title.trim()}
             >
               {isLoading ? 'Saving...' : task ? 'Update Task' : 'Create Task'}

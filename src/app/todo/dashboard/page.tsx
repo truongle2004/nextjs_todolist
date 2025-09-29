@@ -1,73 +1,49 @@
 'use client';
+
 import {
+  createTask,
   createTodo,
   deleteTodo,
   getTodosByUserId,
-  getTasksByTodoId,
   updateTodo,
-  createTask,
 } from '@/apis/todo.api';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Filter, SortAsc } from 'lucide-react';
-import { useState, useMemo, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { TodoCard } from '@/components/TodoCard';
+import { TodoCard } from '@/components';
 import { TaskForm } from '@/components/TaskForm';
-import { useToast } from '@/contexts/ToastContext';
-import { useAuth } from '@/contexts/AuthContext';
 import type {
-  Todo,
-  CreateTodoInput,
-  UpdateTodoInput,
   CreateTaskInput,
+  CreateTodoInput,
+  Todo,
+  UpdateTodoInput,
 } from '@/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Plus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 const DashboardPage = () => {
+  const [userId, setUserId] = useState<number | null>(null);
   const queryClient = useQueryClient();
   const router = useRouter();
-  const { addToast } = useToast();
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  
-  // Redirect to login if not authenticated
+
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
+    const storedUserId = localStorage.getItem('user_id');
+    if (!storedUserId) {
       router.push('/todo/login');
     }
-  }, [authLoading, isAuthenticated, router]);
-  
+    setUserId(Number(storedUserId));
+  }, [userId, router]);
+
   const [isTodoModalOpen, setIsTodoModalOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [currentTodo, setCurrentTodo] = useState<Todo | null>(null);
   const [currentTaskTodoId, setCurrentTaskTodoId] = useState<number | null>(
     null
   );
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'created' | 'updated' | 'progress'>(
-    'created'
-  );
 
-  const { data: todosData, isLoading: todosLoading } = useQuery({
-    queryKey: ['todos', user?.id],
-    queryFn: () => getTodosByUserId(user!.id),
-    enabled: isAuthenticated && !!user?.id,
-  });
-
-  // Fetch tasks for all todos to calculate progress
-  const todoIds = todosData?.data.map((todo) => todo.id) || [];
-  const tasksQueries = useQuery({
-    queryKey: ['all-tasks', todoIds],
-    queryFn: async () => {
-      const taskPromises = todoIds.map((todoId) =>
-        getTasksByTodoId(todoId).catch(() => ({ data: [] }))
-      );
-      const results = await Promise.all(taskPromises);
-      const taskMap: Record<number, any[]> = {};
-      results.forEach((result, index) => {
-        taskMap[todoIds[index]] = result.data || [];
-      });
-      return taskMap;
-    },
-    enabled: todoIds.length > 0,
+  const { data: todosData, isPending: todosLoading } = useQuery({
+    queryKey: ['todos', userId],
+    queryFn: () => getTodosByUserId(userId as number),
+    enabled: !!userId && userId !== null,
   });
 
   const createTodoMutation = useMutation({
@@ -75,18 +51,6 @@ const DashboardPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] });
       setIsTodoModalOpen(false);
-      addToast({
-        type: 'success',
-        title: 'Todo Created',
-        message: 'Your todo has been created successfully.',
-      });
-    },
-    onError: () => {
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: 'Failed to create todo. Please try again.',
-      });
     },
   });
 
@@ -95,19 +59,8 @@ const DashboardPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] });
       setIsTodoModalOpen(false);
-      addToast({
-        type: 'success',
-        title: 'Todo Updated',
-        message: 'Your todo has been updated successfully.',
-      });
     },
-    onError: () => {
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: 'Failed to update todo. Please try again.',
-      });
-    },
+    onError: () => {},
   });
 
   const deleteTodoMutation = useMutation({
@@ -115,19 +68,8 @@ const DashboardPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] });
       queryClient.invalidateQueries({ queryKey: ['all-tasks'] });
-      addToast({
-        type: 'success',
-        title: 'Todo Deleted',
-        message: 'Your todo has been deleted successfully.',
-      });
     },
-    onError: () => {
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: 'Failed to delete todo. Please try again.',
-      });
-    },
+    onError: () => {},
   });
 
   const createTaskMutation = useMutation({
@@ -136,18 +78,6 @@ const DashboardPage = () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['all-tasks'] });
       setIsTaskModalOpen(false);
-      addToast({
-        type: 'success',
-        title: 'Task Created',
-        message: 'Your task has been created successfully.',
-      });
-    },
-    onError: () => {
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: 'Failed to create task. Please try again.',
-      });
     },
   });
 
@@ -169,7 +99,7 @@ const DashboardPage = () => {
       const createData: CreateTodoInput = {
         title,
         description,
-        user_id: user!.id,
+        user_id: userId as number,
       };
       createTodoMutation.mutate(createData);
     }
@@ -209,71 +139,12 @@ const DashboardPage = () => {
     router.push(`/todo/${todoId}`);
   };
 
-  // Filter and sort todos
-  const filteredAndSortedTodos = useMemo(() => {
-    const todos = todosData?.data || [];
-    let filtered = todos;
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      filtered = filtered.filter(
-        (todo) =>
-          todo.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (todo.description &&
-            todo.description.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-    }
-
-    // Apply sorting
-    return filtered.sort((a, b) => {
-      if (sortBy === 'created') {
-        return (
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-      } else if (sortBy === 'updated') {
-        return (
-          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-        );
-      } else if (sortBy === 'progress') {
-        const aProgress = calculateProgress(a.id);
-        const bProgress = calculateProgress(b.id);
-        return bProgress - aProgress;
-      }
-      return 0;
-    });
-  }, [todosData?.data, searchQuery, sortBy, tasksQueries.data]);
-
-  const calculateProgress = (todoId: number) => {
-    const tasks = tasksQueries.data?.[todoId] || [];
-    if (tasks.length === 0) return 0;
-    const completed = tasks.filter(
-      (task) => task.completed || task.status === 'done'
-    ).length;
-    return Math.round((completed / tasks.length) * 100);
-  };
-
-  // Show loading while authenticating or fetching todos
-  if (authLoading || !isAuthenticated) {
-    return (
-      <div className='min-h-screen bg-gray-50 flex items-center justify-center'>
-        <div className='text-lg text-gray-600'>
-          {authLoading ? 'Authenticating...' : 'Redirecting to login...'}
-        </div>
-      </div>
-    );
-  }
-  
-  if (todosLoading) {
-    return (
-      <div className='min-h-screen bg-gray-50 flex items-center justify-center'>
-        <div className='text-lg text-gray-600'>Loading your todos...</div>
-      </div>
-    );
+  if (todosLoading || todosData === undefined) {
+    return <div>Loading...</div>;
   }
 
   return (
     <div className='min-h-screen bg-gray-50'>
-      {/* Header */}
       <div className='bg-white shadow-sm border-b'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
           <div className='py-6'>
@@ -295,90 +166,10 @@ const DashboardPage = () => {
                 Create Todo
               </button>
             </div>
-
-            {/* Search and Filters */}
-            <div className='mt-6 flex flex-col sm:flex-row gap-4'>
-              <div className='relative flex-1 max-w-md'>
-                <Search
-                  className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400'
-                  size={20}
-                />
-                <input
-                  type='text'
-                  placeholder='Search todos...'
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                />
-              </div>
-              <div className='flex items-center gap-2'>
-                <SortAsc className='text-gray-400' size={20} />
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
-                  className='border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                >
-                  <option value='created'>Sort by Created</option>
-                  <option value='updated'>Sort by Updated</option>
-                  <option value='progress'>Sort by Progress</option>
-                </select>
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-        {filteredAndSortedTodos.length === 0 ? (
-          <div className='text-center py-12'>
-            <div className='max-w-md mx-auto'>
-              <h3 className='text-lg font-medium text-gray-900 mb-2'>
-                {todosData?.data.length === 0
-                  ? 'No todos yet'
-                  : 'No todos match your search'}
-              </h3>
-              <p className='text-gray-500 mb-6'>
-                {todosData?.data.length === 0
-                  ? 'Create your first todo to get started with organizing your tasks'
-                  : "Try adjusting your search query to find what you're looking for"}
-              </p>
-              {todosData?.data.length === 0 && (
-                <button
-                  onClick={() => {
-                    setCurrentTodo(null);
-                    setIsTodoModalOpen(true);
-                  }}
-                  className='inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium'
-                >
-                  <Plus size={20} />
-                  Create Your First Todo
-                </button>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6'>
-            {filteredAndSortedTodos.map((todo) => (
-              <TodoCard
-                key={todo.id}
-                todo={todo}
-                tasks={tasksQueries.data?.[todo.id] || []}
-                onEditTodo={handleEditTodo}
-                onDeleteTodo={handleDeleteTodo}
-                onToggleTodoComplete={handleToggleTodoComplete}
-                onAddTask={handleAddTask}
-                onViewTodo={handleViewTodo}
-                isLoading={
-                  updateTodoMutation.isPending || deleteTodoMutation.isPending
-                }
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Todo Form Modal */}
       {isTodoModalOpen && (
         <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4'>
           <div className='bg-white rounded-lg shadow-xl w-full max-w-md'>
@@ -454,11 +245,39 @@ const DashboardPage = () => {
         </div>
       )}
 
-      {/* Task Form Modal */}
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+        <div className='py-6'>
+          {todosData?.data?.length === 0 ? (
+            <div className='text-center py-12'>
+              <p className='text-gray-500 text-lg'>No todos yet</p>
+              <p className='text-gray-400 text-sm mt-2'>
+                Create your first todo to get started
+              </p>
+            </div>
+          ) : (
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+              {todosData?.data?.map((todo) => (
+                <TodoCard
+                  key={todo.id}
+                  todo={todo}
+                  tasks={[]}
+                  onEditTodo={handleEditTodo}
+                  onDeleteTodo={handleDeleteTodo}
+                  onToggleTodoComplete={handleToggleTodoComplete}
+                  onAddTask={handleAddTask}
+                  onViewTodo={handleViewTodo}
+                  isLoading={todosLoading}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       {isTaskModalOpen && currentTaskTodoId && (
         <TaskForm
           todoId={currentTaskTodoId}
-          onSubmit={handleCreateTask}
+          handleCreateTask={handleCreateTask}
           onClose={() => {
             setIsTaskModalOpen(false);
             setCurrentTaskTodoId(null);

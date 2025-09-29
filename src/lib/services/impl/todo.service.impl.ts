@@ -25,7 +25,7 @@ export class TodoServiceImpl implements ITodoService {
     return await this.todoDb.createTask(task);
   }
   async updateTask(task: Task): Promise<Task> {
-    return await this.todoDb.updateTask(task);
+    return await this.todoDb.updateTask(task, task.id);
   }
   async deleteTask(taskId: number): Promise<void> {
     return await this.todoDb.deleteTask(taskId);

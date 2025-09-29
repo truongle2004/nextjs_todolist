@@ -3,8 +3,6 @@
 import { login } from '@/apis/auth.api';
 import { loginSchema } from '@/scheme/loginScheme';
 import type { LoginFormType } from '@/types/login.type';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/contexts/ToastContext';
 import { LockOutlined, LoginOutlined, UserOutlined } from '@ant-design/icons';
 import { useMutation } from '@tanstack/react-query';
 import { Button, Checkbox, Form, Input, Typography, message } from 'antd';
@@ -16,28 +14,16 @@ const { Title, Text } = Typography;
 
 const Login: React.FC = () => {
   const [form] = Form.useForm();
-  const { login: authLogin } = useAuth();
-  const { addToast } = useToast();
   const router = useRouter();
-  
+
   const { mutateAsync: loginMutation, isPending } = useMutation({
     mutationKey: ['login'],
     mutationFn: login,
     onSuccess: (response) => {
       // Extract user data from API response
-      const userData = response.data.data;
-      authLogin({
-        id: userData.id,
-        username: userData.username,
-        email: userData.email,
-      });
-      
-      addToast({
-        type: 'success',
-        title: 'Login Successful',
-        message: `Welcome back, ${userData.username}!`,
-      });
-      
+      const userData = response.data;
+      localStorage.setItem('user_id', userData.toLocaleString());
+
       // Redirect to dashboard
       router.push('/todo/dashboard');
     },
@@ -86,19 +72,6 @@ const Login: React.FC = () => {
 
   return (
     <div className='flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 p-4 sm:p-6'>
-      <div className='mb-6 flex flex-col items-center'>
-        <Image
-          src='/logo.png' // Replace with your logo or use an icon
-          alt='Logo'
-          width={60}
-          height={60}
-          className='mb-2 animate-pulse'
-        />
-        <Title level={2} className='text-gray-800 font-bold'>
-          Welcome Back
-        </Title>
-        <Text className='text-gray-600'>Sign in to continue</Text>
-      </div>
       <div className='w-full max-w-md bg-white rounded-xl shadow-2xl transform transition-all hover:shadow-xl p-12 sm:p-10'>
         <Form
           form={form}

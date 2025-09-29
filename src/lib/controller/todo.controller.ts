@@ -1,6 +1,5 @@
-import type { Todo, Task } from '@/types';
+import type { Task, Todo } from '@/types';
 import { inject, injectable } from 'tsyringe';
-import type { IAuthService } from '../services/auth.service';
 import type { ITodoService } from '../services/todo.service';
 
 @injectable()
