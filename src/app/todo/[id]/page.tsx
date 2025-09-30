@@ -9,7 +9,6 @@ import {
 import { TaskForm } from '@/components/TaskForm';
 import { TaskItem } from '@/components/TaskItem';
 import { StatusEnum } from '@/enums/taskStatus.enum';
-import useAuthStore from '@/store/authStore';
 import type { Task, CreateTaskInput, UpdateTaskInput } from '@/types/task.type';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Empty } from 'antd';
@@ -22,7 +21,6 @@ const TodoDetailPage = () => {
 
   const queryClient = useQueryClient();
   const todoId = Number(params.id);
-  const { isLoggedIn } = useAuthStore();
 
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState<Task | undefined>();
@@ -101,11 +99,10 @@ const TodoDetailPage = () => {
   const tasks = tasksData?.data || [];
 
   useEffect(() => {
-    if (!isLoggedIn()) {
+    if (!localStorage.getItem('user_id')) {
       router.push('/todo/login');
     }
-  }, [isLoggedIn()]);
-
+  }, []);
   return (
     <div className='min-h-screen bg-gray-50 p-6'>
       <div className='bg-white shadow-sm border rounded-lg p-6 space-y-4'>

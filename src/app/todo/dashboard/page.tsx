@@ -7,10 +7,8 @@ import {
   getTodosByUserId,
   updateTodo,
 } from '@/apis/todo.api';
-import { TaskForm } from '@/components/TaskForm';
 import { TodoForm } from '@/components/TodoForm';
 import { TodoCard } from '@/components/TodoCard';
-import useAuthStore from '@/store/authStore';
 import type { CreateTaskInput } from '@/types/task.type';
 import type { CreateTodoInput, Todo, UpdateTodoInput } from '@/types/todo.type';
 import { errorToast } from '@/utils/toastify';
@@ -18,10 +16,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { TaskForm } from '@/components/TaskForm';
 
 const DashboardPage = () => {
-  const { getUserId, isLoggedIn } = useAuthStore();
-  const userId = getUserId();
+  const [userId, setUserId] = useState<number | null>(null);
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -127,10 +125,11 @@ const DashboardPage = () => {
   };
 
   useEffect(() => {
-    if (!isLoggedIn()) {
+    if (!localStorage.getItem('user_id')) {
       router.push('/todo/login');
     }
-  }, [isLoggedIn(), router]);
+    setUserId(Number(localStorage.getItem('user_id')));
+  }, [router]);
 
   if (todosLoading || todosData === undefined) {
     return <div>Loading...</div>;

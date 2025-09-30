@@ -20,11 +20,8 @@ const Login: React.FC = () => {
     mutationKey: ['login'],
     mutationFn: login,
     onSuccess: (response) => {
-      // Extract user data from API response
       const userData = response.data;
       localStorage.setItem('user_id', userData.toLocaleString());
-
-      // Redirect to dashboard
       router.push('/todo/dashboard');
     },
     onError: (error: any) => {

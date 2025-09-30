@@ -1,15 +1,15 @@
 'use client';
-import useAuthStore from '@/store/authStore';
+
 import { Button } from 'antd';
 import { useRouter } from 'next/navigation';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 const Header: React.FC = () => {
   const router = useRouter();
-  const { isLoggedIn, logout } = useAuthStore();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const handleLogout = () => {
-    logout();
+    localStorage.removeItem('user_id');
     router.push('/todo/login');
   };
 
@@ -21,13 +21,29 @@ const Header: React.FC = () => {
     router.push('/todo/dashboard');
   };
 
+  const handleRoutePokemon = () => {
+    router.push('/pokemon');
+  };
+
+  useEffect(() => {
+    if (!localStorage.getItem('user_id')) {
+      router.push('/todo/login');
+      setIsAuthenticated(false);
+    } else {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
   return (
     <header className='flex items-center justify-between bg-white px-4 py-3 shadow-sm border-b'>
       <h1 className='text-xl font-semibold flex items-center gap-2'>
         📝 Todo List
       </h1>
-      {isLoggedIn() ? (
+      {isAuthenticated ? (
         <div className='flex gap-2'>
+          <Button type='primary' onClick={handleRoutePokemon}>
+            Pokemon
+          </Button>
           <Button type='primary' onClick={handleRouteDashboard}>
             Dashboard
           </Button>

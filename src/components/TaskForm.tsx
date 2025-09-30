@@ -2,12 +2,11 @@
 import { StatusEnum } from '@/enums/taskStatus.enum';
 import { TaskPriorityEnum } from '@/enums/taskPriority.enum';
 import { X } from 'lucide-react';
-import { Form, Input, Select, DatePicker, Checkbox, Button, Modal } from 'antd';
+import { Form, Input, Select, Checkbox, Button, Modal } from 'antd';
 import { z } from 'zod';
-import dayjs from 'dayjs';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { TaskFormData } from '@/types/taskForm';
-import taskSchema from '@/scheme/taskSchema';
+import taskSchema from '@/schema/taskSchema';
 import type { Task, CreateTaskInput, UpdateTaskInput } from '@/types/task.type';
 
 const { TextArea } = Input;
@@ -30,6 +29,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({
   isLoading = false,
 }) => {
   const [form] = Form.useForm<TaskFormData>();
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [dueDate, setDueDate] = useState<string>('');
 
   useEffect(() => {
     if (task) {
@@ -38,24 +39,24 @@ export const TaskForm: React.FC<TaskFormProps> = ({
         description: task.description,
         status: task.status,
         priority: task.priority,
-        due_date: task.due_date
-          ? (dayjs(task.due_date).toISOString() as string)
-          : undefined,
         completed: task.completed,
       });
+      if (task.due_date) {
+        setDueDate(task.due_date.split('T')[0]);
+      }
     }
   }, [task, form]);
 
   const handleSubmit = async (values: any) => {
     try {
+      setErrors({});
+
       const formData: TaskFormData = {
         title: values.title,
         description: values.description || '',
         status: values.status,
         priority: values.priority,
-        due_date: values.due_date
-          ? dayjs(values.due_date).format('YYYY-MM-DD')
-          : undefined,
+        due_date: dueDate ? new Date(dueDate).toISOString() : undefined,
         completed: values.completed || false,
       };
 
@@ -85,12 +86,12 @@ export const TaskForm: React.FC<TaskFormProps> = ({
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const formErrors = error.issues.map((issue) => ({
-          name: issue.path as (string | number)[],
-          errors: [issue.message],
-        }));
-
-        form.setFields(formErrors);
+        const newErrors: Record<string, string> = {};
+        error.issues.forEach((issue) => {
+          const fieldName = issue.path[0] as string;
+          newErrors[fieldName] = issue.message;
+        });
+        setErrors(newErrors);
 
         console.error('Validation errors:', error.issues);
       } else {
@@ -121,15 +122,18 @@ export const TaskForm: React.FC<TaskFormProps> = ({
         <Form.Item
           label='Task Title'
           name='title'
-          rules={[
-            { required: true, message: 'Please enter a task title' },
-            { whitespace: true, message: 'Title cannot be empty' },
-          ]}
+          validateStatus={errors.title ? 'error' : ''}
+          help={errors.title}
         >
           <Input placeholder='Enter task title' size='large' />
         </Form.Item>
 
-        <Form.Item label='Description' name='description'>
+        <Form.Item
+          label='Description'
+          name='description'
+          validateStatus={errors.description ? 'error' : ''}
+          help={errors.description}
+        >
           <TextArea
             rows={3}
             placeholder='Task description (optional)'
@@ -144,7 +148,12 @@ export const TaskForm: React.FC<TaskFormProps> = ({
             gap: '16px',
           }}
         >
-          <Form.Item label='Status' name='status'>
+          <Form.Item
+            label='Status'
+            name='status'
+            validateStatus={errors.status ? 'error' : ''}
+            help={errors.status}
+          >
             <Select size='large'>
               <Select.Option value={StatusEnum.TODO}>📝 To Do</Select.Option>
               <Select.Option value={StatusEnum.IN_PROGRESS}>
@@ -154,7 +163,12 @@ export const TaskForm: React.FC<TaskFormProps> = ({
             </Select>
           </Form.Item>
 
-          <Form.Item label='Priority' name='priority'>
+          <Form.Item
+            label='Priority'
+            name='priority'
+            validateStatus={errors.priority ? 'error' : ''}
+            help={errors.priority}
+          >
             <Select size='large'>
               <Select.Option value={TaskPriorityEnum.LOW}>
                 🟢 Low Priority
@@ -169,11 +183,32 @@ export const TaskForm: React.FC<TaskFormProps> = ({
           </Form.Item>
         </div>
 
-        <Form.Item label='Due Date' name='due_date'>
-          <DatePicker
-            style={{ width: '100%' }}
-            size='large'
-            format='YYYY-MM-DD'
+        <Form.Item
+          label='Due Date'
+          validateStatus={errors.due_date ? 'error' : ''}
+          help={errors.due_date}
+        >
+          <input
+            type='date'
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '8px 11px',
+              fontSize: '16px',
+              lineHeight: '1.5715',
+              borderRadius: '6px',
+              border: '1px solid #d9d9d9',
+              transition: 'all 0.3s',
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = '#4096ff';
+              e.target.style.boxShadow = '0 0 0 2px rgba(5, 145, 255, 0.1)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = '#d9d9d9';
+              e.target.style.boxShadow = 'none';
+            }}
           />
         </Form.Item>
 

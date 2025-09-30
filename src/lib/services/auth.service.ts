@@ -1,6 +1,5 @@
 import type { SignupFormType } from '@/types/register.type';
-
-import type { User } from '@/types';
+import type { User } from '@/types/user.type';
 
 export interface IAuthService {
   login: (email: string, password: string) => Promise<User>;

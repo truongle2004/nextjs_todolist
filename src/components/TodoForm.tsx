@@ -3,7 +3,7 @@ import type { Todo, CreateTodoInput, UpdateTodoInput } from '@/types/todo.type';
 import { X } from 'lucide-react';
 import { Form, Input, Checkbox, Button, Modal } from 'antd';
 import { z } from 'zod';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { TodoFormData } from '@/types/todoForm.type';
 import todoSchema from '@/schema/todoSchema';
 
@@ -27,6 +27,7 @@ export const TodoForm: React.FC<TodoFormProps> = ({
   isLoading = false,
 }) => {
   const [form] = Form.useForm<TodoFormData>();
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (todo) {
@@ -40,6 +41,8 @@ export const TodoForm: React.FC<TodoFormProps> = ({
 
   const handleSubmit = async (values: any) => {
     try {
+      setErrors({});
+
       const formData: TodoFormData = {
         title: values.title,
         description: values.description || '',
@@ -66,13 +69,12 @@ export const TodoForm: React.FC<TodoFormProps> = ({
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const formErrors = error.issues.map((issue) => ({
-          name: issue.path as (string | number)[],
-          errors: [issue.message],
-        }));
-
-        form.setFields(formErrors);
-
+        const newErrors: Record<string, string> = {};
+        error.issues.forEach((issue) => {
+          const fieldName = issue.path[0] as string;
+          newErrors[fieldName] = issue.message;
+        });
+        setErrors(newErrors);
         console.error('Validation errors:', error.issues);
       } else {
         console.error('Unexpected error:', error);
@@ -100,11 +102,8 @@ export const TodoForm: React.FC<TodoFormProps> = ({
         <Form.Item
           label='Todo Title'
           name='title'
-          rules={[
-            { required: true, message: 'Please enter a todo title' },
-            { whitespace: true, message: 'Title cannot be empty' },
-            { max: 100, message: 'Title must be less than 100 characters' },
-          ]}
+          validateStatus={errors.title ? 'error' : ''}
+          help={errors.title}
         >
           <Input placeholder='Enter todo title' size='large' />
         </Form.Item>
@@ -112,12 +111,8 @@ export const TodoForm: React.FC<TodoFormProps> = ({
         <Form.Item
           label='Description'
           name='description'
-          rules={[
-            {
-              max: 500,
-              message: 'Description must be less than 500 characters',
-            },
-          ]}
+          validateStatus={errors.description ? 'error' : ''}
+          help={errors.description}
         >
           <TextArea
             rows={4}

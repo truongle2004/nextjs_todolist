@@ -1,6 +1,5 @@
 import { StatusEnum } from '@/enums/taskStatus.enum';
 import { TaskPriorityEnum } from '@/enums/taskPriority.enum';
-import type { Task, Todo } from '@/types';
 
 export const getPriorityLabel = (priority: TaskPriorityEnum): string => {
   switch (priority) {

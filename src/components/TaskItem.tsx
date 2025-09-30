@@ -47,7 +47,6 @@ export const TaskItem: React.FC<TaskItemProps> = ({
     const newCompleted = !task.completed;
     onToggleComplete(task.id, newCompleted);
 
-    // Also update status to done if completing, or to todo if uncompleting
     onUpdateTask({
       id: task.id,
       title: task.title,

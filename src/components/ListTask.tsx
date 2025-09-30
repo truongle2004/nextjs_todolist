@@ -9,7 +9,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2, Edit, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 
-export const TaskComponent = ({ todoId }: { todoId: number }) => {
+export const ListTask = ({ todoId }: { todoId: number }) => {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState<any>(null);
@@ -58,20 +58,20 @@ export const TaskComponent = ({ todoId }: { todoId: number }) => {
   };
 
   return (
-    <div className="mt-4">
+    <div className='mt-4'>
       <div
-        className="flex justify-between items-center mb-2 cursor-pointer"
+        className='flex justify-between items-center mb-2 cursor-pointer'
         onClick={() => setIsCollapsed(!isCollapsed)}
       >
-        <h3 className="text-lg font-semibold">Tasks</h3>
-        <div className="flex items-center gap-2">
+        <h3 className='text-lg font-semibold'>Tasks</h3>
+        <div className='flex items-center gap-2'>
           <button
             onClick={(e) => {
               e.stopPropagation();
               setCurrentTask(null);
               setIsModalOpen(true);
             }}
-            className="bg-green-500 text-white p-1 rounded-full"
+            className='bg-green-500 text-white p-1 rounded-full'
           >
             <Plus size={16} />
           </button>
@@ -87,19 +87,19 @@ export const TaskComponent = ({ todoId }: { todoId: number }) => {
           {isLoading ? (
             <div>Loading tasks...</div>
           ) : (
-            <ul className="space-y-2">
+            <ul className='space-y-2'>
               {data?.data.map((task: any) => (
-                <li key={task.id} className="bg-gray-100 p-2 rounded-md">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">{task.title}</span>
-                    <div className="flex gap-2">
+                <li key={task.id} className='bg-gray-100 p-2 rounded-md'>
+                  <div className='flex justify-between items-center'>
+                    <span className='font-medium'>{task.title}</span>
+                    <div className='flex gap-2'>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setCurrentTask(task);
                           setIsModalOpen(true);
                         }}
-                        className="text-blue-500"
+                        className='text-blue-500'
                       >
                         <Edit size={16} />
                       </button>
@@ -108,13 +108,13 @@ export const TaskComponent = ({ todoId }: { todoId: number }) => {
                           e.stopPropagation();
                           deleteTaskMutation.mutate(task.id);
                         }}
-                        className="text-red-500"
+                        className='text-red-500'
                       >
                         <Trash2 size={16} />
                       </button>
                     </div>
                   </div>
-                  <p className="text-gray-500 text-sm">{task.description}</p>
+                  <p className='text-gray-500 text-sm'>{task.description}</p>
                 </li>
               ))}
             </ul>
@@ -123,54 +123,54 @@ export const TaskComponent = ({ todoId }: { todoId: number }) => {
       )}
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-8 rounded-lg">
-            <h2 className="text-2xl font-bold mb-4">
+        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center'>
+          <div className='bg-white p-8 rounded-lg'>
+            <h2 className='text-2xl font-bold mb-4'>
               {currentTask ? 'Update Task' : 'Create Task'}
             </h2>
             <form onSubmit={handleFormSubmit}>
-              <div className="mb-4">
+              <div className='mb-4'>
                 <label
-                  htmlFor="title"
-                  className="block text-sm font-medium text-gray-700"
+                  htmlFor='title'
+                  className='block text-sm font-medium text-gray-700'
                 >
                   Title
                 </label>
                 <input
-                  type="text"
-                  id="title"
-                  name="title"
+                  type='text'
+                  id='title'
+                  name='title'
                   defaultValue={currentTask?.title}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
                   required
                 />
               </div>
-              <div className="mb-4">
+              <div className='mb-4'>
                 <label
-                  htmlFor="description"
-                  className="block text-sm font-medium text-gray-700"
+                  htmlFor='description'
+                  className='block text-sm font-medium text-gray-700'
                 >
                   Description
                 </label>
                 <textarea
-                  id="description"
-                  name="description"
+                  id='description'
+                  name='description'
                   defaultValue={currentTask?.description}
                   rows={3}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
                 />
               </div>
-              <div className="flex justify-end gap-4">
+              <div className='flex justify-end gap-4'>
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => setIsModalOpen(false)}
-                  className="bg-gray-300 text-black p-2 rounded-md"
+                  className='bg-gray-300 text-black p-2 rounded-md'
                 >
                   Cancel
                 </button>
                 <button
-                  type="submit"
-                  className="bg-blue-500 text-white p-2 rounded-md"
+                  type='submit'
+                  className='bg-blue-500 text-white p-2 rounded-md'
                 >
                   {currentTask ? 'Update' : 'Create'}
                 </button>
