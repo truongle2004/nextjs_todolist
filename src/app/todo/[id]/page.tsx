@@ -102,10 +102,10 @@ const TodoDetailPage = () => {
   const tasks = tasksData?.data || [];
 
   useEffect(() => {
-    if (!isLoggedIn) {
+    if (!isLoggedIn()) {
       router.push('/todo/login');
     }
-  }, []);
+  }, [isLoggedIn()]);
 
   return (
     <div className='min-h-screen bg-gray-50 p-6'>

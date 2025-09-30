@@ -10,10 +10,11 @@ const Header: React.FC = () => {
 
   const handleLogout = () => {
     logout();
+    router.push('/todo/login');
   };
 
-  const handleSignup = () => {
-    router.push('/todo/signup');
+  const handleLogin = () => {
+    router.push('/todo/login');
   };
 
   return (
@@ -26,8 +27,8 @@ const Header: React.FC = () => {
           Logout
         </Button>
       ) : (
-        <Button type='primary' onClick={handleSignup}>
-          Signup
+        <Button type='primary' onClick={handleLogin}>
+          Login
         </Button>
       )}
     </header>

@@ -19,10 +19,12 @@ import type {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 
 const DashboardPage = () => {
-  const { userId, isLoggedIn } = useAuthStore();
+  const { getUserId, isLoggedIn } = useAuthStore();
+  const userId = getUserId();
+  console.log(userId);
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -132,10 +134,10 @@ const DashboardPage = () => {
   };
 
   useEffect(() => {
-    if (!isLoggedIn) {
+    if (!isLoggedIn()) {
       router.push('/todo/login');
     }
-  }, [isLoggedIn, router]);
+  }, [isLoggedIn(), router]);
 
   if (todosLoading || todosData === undefined) {
     return <div>Loading...</div>;
