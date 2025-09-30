@@ -37,8 +37,15 @@ export class TodoDbImpl implements ITodoDb {
   }
 
   async createTodo(todo: Omit<Todo, 'id'>): Promise<Todo> {
+    console.log(todo);
     const supabase = await this.supabaseService.getClient();
-    const { data } = await supabase.from(this.TODO_TABLE).insert(todo).select();
+    const { data, error } = await supabase
+      .from(this.TODO_TABLE)
+      .insert(todo)
+      .select();
+    if (error) {
+      console.log(error);
+    }
     return data![0] as Todo;
   }
 

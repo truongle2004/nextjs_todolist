@@ -1,5 +1,6 @@
-import { container } from 'tsyringe';
+import 'reflect-metadata';
 import { TodoController } from '@/lib/controller/todo.controller';
+import { container } from '@/lib/diContainer';
 import { NextResponse } from 'next/server';
 
 const todoController = container.resolve(TodoController);

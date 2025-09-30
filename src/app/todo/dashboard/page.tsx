@@ -9,6 +9,7 @@ import {
 } from '@/apis/todo.api';
 import { TodoCard } from '@/components';
 import { TaskForm } from '@/components/TaskForm';
+import useAuthStore from '@/store/authStore';
 import type {
   CreateTaskInput,
   CreateTodoInput,
@@ -21,17 +22,9 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 const DashboardPage = () => {
-  const [userId, setUserId] = useState<number | null>(null);
+  const { userId, isLoggedIn } = useAuthStore();
   const queryClient = useQueryClient();
   const router = useRouter();
-
-  useEffect(() => {
-    const storedUserId = localStorage.getItem('user_id');
-    if (!storedUserId) {
-      router.push('/todo/login');
-    }
-    setUserId(Number(storedUserId));
-  }, [userId, router]);
 
   const [isTodoModalOpen, setIsTodoModalOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -124,7 +117,6 @@ const DashboardPage = () => {
       updateTodoMutation.mutate({
         id: todoId,
         title: todo.title,
-        description: todo.description,
         completed,
       });
     }
@@ -138,6 +130,12 @@ const DashboardPage = () => {
   const handleViewTodo = (todoId: number) => {
     router.push(`/todo/${todoId}`);
   };
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      router.push('/todo/login');
+    }
+  }, [isLoggedIn, router]);
 
   if (todosLoading || todosData === undefined) {
     return <div>Loading...</div>;

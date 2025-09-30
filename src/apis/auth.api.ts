@@ -6,9 +6,9 @@ import axiosInstance from '@/utils/axiosInstance';
 export const login = async (
   form: LoginFormType
 ): Promise<ApiResponse<number>> => {
-  return await axiosInstance.post('/api/login', form);
+  return await axiosInstance.post('/login', form);
 };
 
 export const signup = async (form: SignupFormType) => {
-  return await axiosInstance.post('/api/signup', form);
+  return await axiosInstance.post('/signup', form);
 };

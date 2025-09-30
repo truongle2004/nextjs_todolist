@@ -13,25 +13,26 @@ import { StatusEnum } from '@/enums/taskStatus.enum';
 import type { CreateTaskInput, Task, UpdateTaskInput } from '@/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Empty, Button } from 'antd';
+import useAuthStore from '@/store/authStore';
 
 const TodoDetailPage = () => {
   const params = useParams();
   const router = useRouter();
+
   const queryClient = useQueryClient();
   const todoId = Number(params.id);
+  const { isLoggedIn } = useAuthStore();
 
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState<Task | undefined>();
-  const [showCompleted, setShowCompleted] = useState(true);
 
   const { data: tasksData, isLoading: tasksLoading } = useQuery({
     queryKey: ['tasks', todoId],
     queryFn: () => getTasksByTodoId(todoId),
     enabled: !!todoId,
   });
-
-  console.log(tasksData);
 
   const createTaskMutation = useMutation({
     mutationFn: createTask,
@@ -57,14 +58,6 @@ const TodoDetailPage = () => {
     mutationFn: deleteTask,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks', todoId] });
-      queryClient.invalidateQueries({ queryKey: ['todos'] });
-    },
-  });
-
-  const updateTodoMutation = useMutation({
-    mutationFn: updateTodo,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['todo', todoId] });
       queryClient.invalidateQueries({ queryKey: ['todos'] });
     },
   });
@@ -108,25 +101,44 @@ const TodoDetailPage = () => {
 
   const tasks = tasksData?.data || [];
 
+  useEffect(() => {
+    if (!isLoggedIn) {
+      router.push('/todo/login');
+    }
+  }, []);
+
   return (
-    <div className='min-h-screen bg-gray-50'>
+    <div className='min-h-screen bg-gray-50 p-6'>
       {/* Header */}
-      <div className='bg-white shadow-sm border-b'>
-        <div className='space-y-3'>
-          {tasks.map((task) => (
-            <TaskItem
-              key={task.id}
-              task={task}
-              onEditTask={handleEditTask}
-              onDeleteTask={handleDeleteTask}
-              onToggleComplete={handleToggleTaskComplete}
-              onUpdateTask={handleUpdateTask}
-              isLoading={
-                updateTaskMutation.isPending || deleteTaskMutation.isPending
-              }
-            />
-          ))}
-        </div>
+      <div className='bg-white shadow-sm border rounded-lg p-6 space-y-4'>
+        {tasksLoading ? (
+          <p>Loading tasks...</p>
+        ) : tasks.length === 0 ? (
+          <Empty
+            description='No tasks found'
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+          >
+            <Button type='primary' onClick={handleAddTask}>
+              Add Task
+            </Button>
+          </Empty>
+        ) : (
+          <div className='space-y-3'>
+            {tasks.map((task) => (
+              <TaskItem
+                key={task.id}
+                task={task}
+                onEditTask={handleEditTask}
+                onDeleteTask={handleDeleteTask}
+                onToggleComplete={handleToggleTaskComplete}
+                onUpdateTask={handleUpdateTask}
+                isLoading={
+                  updateTaskMutation.isPending || deleteTaskMutation.isPending
+                }
+              />
+            ))}
+          </div>
+        )}
 
         {/* Task Form Modal */}
         {isTaskFormOpen && (
