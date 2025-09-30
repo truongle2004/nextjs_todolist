@@ -1,7 +1,7 @@
 'use client';
 
 import { login } from '@/apis/auth.api';
-import { loginSchema } from '@/scheme/loginScheme';
+import { loginSchema } from '@/schema/loginSchema';
 import type { LoginFormType } from '@/types/login.type';
 import { LockOutlined, LoginOutlined, UserOutlined } from '@ant-design/icons';
 import { useMutation } from '@tanstack/react-query';

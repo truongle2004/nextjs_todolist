@@ -9,8 +9,9 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { useState } from 'react';
-import type { Todo, Task } from '@/types';
 import { formatDateTime } from '@/utils/taskUtils';
+import type { Task } from '@/types/task.type';
+import type { Todo } from '@/types/todo.type';
 
 interface TodoCardProps {
   todo: Todo;

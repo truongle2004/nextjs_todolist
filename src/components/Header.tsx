@@ -17,15 +17,24 @@ const Header: React.FC = () => {
     router.push('/todo/login');
   };
 
+  const handleRouteDashboard = () => {
+    router.push('/todo/dashboard');
+  };
+
   return (
     <header className='flex items-center justify-between bg-white px-4 py-3 shadow-sm border-b'>
       <h1 className='text-xl font-semibold flex items-center gap-2'>
         📝 Todo List
       </h1>
       {isLoggedIn() ? (
-        <Button type='primary' onClick={handleLogout}>
-          Logout
-        </Button>
+        <div className='flex gap-2'>
+          <Button type='primary' onClick={handleRouteDashboard}>
+            Dashboard
+          </Button>
+          <Button type='primary' onClick={handleLogout}>
+            Logout
+          </Button>
+        </div>
       ) : (
         <Button type='primary' onClick={handleLogin}>
           Login

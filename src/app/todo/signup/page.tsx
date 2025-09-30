@@ -1,7 +1,7 @@
 'use client';
 
 import { signup } from '@/apis/auth.api';
-import { signupSchema } from '@/scheme/registerScheme';
+import { signupSchema } from '@/schema/registerSchema';
 import type { SignupFormType } from '@/types/register.type';
 import {
   LockOutlined,

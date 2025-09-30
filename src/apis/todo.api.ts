@@ -1,15 +1,9 @@
-import type {
-  Todo,
-  Task,
-  CreateTodoInput,
-  UpdateTodoInput,
-  CreateTaskInput,
-  UpdateTaskInput,
-} from '@/types';
 import { StatusEnum } from '@/enums/taskStatus.enum';
 import { TaskPriorityEnum } from '@/enums/taskPriority.enum';
 import axiosInstance from '@/utils/axiosInstance';
 import type { ApiResponse } from '@/types/apiResponse.type';
+import type { Task, CreateTaskInput, UpdateTaskInput } from '@/types/task.type';
+import type { Todo, CreateTodoInput, UpdateTodoInput } from '@/types/todo.type';
 
 export const getAllTodos = async (userId: number) => {
   const { data } = await axiosInstance.get<{ data: Todo[] }>(

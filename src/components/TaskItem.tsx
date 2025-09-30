@@ -7,7 +7,6 @@ import {
   Clock,
   AlertTriangle,
 } from 'lucide-react';
-import type { Task, UpdateTaskInput } from '@/types';
 import {
   getPriorityColor,
   getPriorityIcon,
@@ -18,6 +17,7 @@ import {
   isDueSoon,
 } from '@/utils/taskUtils';
 import { StatusEnum } from '@/enums/taskStatus.enum';
+import type { Task, UpdateTaskInput } from '@/types/task.type';
 
 interface TaskItemProps {
   task: Task;

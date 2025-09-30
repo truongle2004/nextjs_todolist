@@ -1,7 +1,8 @@
-import type { Task, Todo } from '@/types';
 import type { ITodoService } from '../todo.service';
 import { inject, injectable } from 'tsyringe';
 import type { ITodoDb } from '@/lib/db/todo.db';
+import type { Task } from '@/types/task.type';
+import type { Todo } from '@/types/todo.type';
 
 @injectable()
 export class TodoServiceImpl implements ITodoService {

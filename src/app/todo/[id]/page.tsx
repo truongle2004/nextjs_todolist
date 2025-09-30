@@ -5,17 +5,16 @@ import {
   deleteTask,
   getTasksByTodoId,
   updateTask,
-  updateTodo,
 } from '@/apis/todo.api';
-import { TaskItem } from '@/components';
 import { TaskForm } from '@/components/TaskForm';
+import { TaskItem } from '@/components/TaskItem';
 import { StatusEnum } from '@/enums/taskStatus.enum';
-import type { CreateTaskInput, Task, UpdateTaskInput } from '@/types';
+import useAuthStore from '@/store/authStore';
+import type { Task, CreateTaskInput, UpdateTaskInput } from '@/types/task.type';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Button, Empty } from 'antd';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Empty, Button } from 'antd';
-import useAuthStore from '@/store/authStore';
 
 const TodoDetailPage = () => {
   const params = useParams();
@@ -109,19 +108,17 @@ const TodoDetailPage = () => {
 
   return (
     <div className='min-h-screen bg-gray-50 p-6'>
-      {/* Header */}
       <div className='bg-white shadow-sm border rounded-lg p-6 space-y-4'>
+        <Button type='primary' onClick={handleAddTask}>
+          Add Task
+        </Button>
         {tasksLoading ? (
           <p>Loading tasks...</p>
         ) : tasks.length === 0 ? (
           <Empty
             description='No tasks found'
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-          >
-            <Button type='primary' onClick={handleAddTask}>
-              Add Task
-            </Button>
-          </Empty>
+          />
         ) : (
           <div className='space-y-3'>
             {tasks.map((task) => (
@@ -140,7 +137,17 @@ const TodoDetailPage = () => {
           </div>
         )}
 
-        {/* Task Form Modal */}
+        {isTaskFormOpen && !currentTask && (
+          <TaskForm
+            todoId={todoId}
+            handleCreateTask={handleCreateTask}
+            onClose={() => setIsTaskFormOpen(false)}
+            isLoading={createTaskMutation.isPending}
+            task={undefined}
+            handleUpdateTask={undefined}
+          />
+        )}
+
         {isTaskFormOpen && (
           <TaskForm
             task={currentTask}

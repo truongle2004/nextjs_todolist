@@ -2,6 +2,7 @@ import type { ApiResponse } from '@/types/apiResponse.type';
 import type { LoginFormType } from '@/types/login.type';
 import type { SignupFormType } from '@/types/register.type';
 import axiosInstance from '@/utils/axiosInstance';
+import axios from 'axios';
 
 export const login = async (
   form: LoginFormType

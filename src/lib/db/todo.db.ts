@@ -1,4 +1,5 @@
-import type { Todo, Task } from '@/types';
+import type { Task } from '@/types/task.type';
+import type { Todo } from '@/types/todo.type';
 
 export interface ITodoDb {
   getTodosByUserId(userId: number): Promise<Todo[]>;

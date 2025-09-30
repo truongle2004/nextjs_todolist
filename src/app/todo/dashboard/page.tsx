@@ -7,24 +7,21 @@ import {
   getTodosByUserId,
   updateTodo,
 } from '@/apis/todo.api';
-import { TodoCard } from '@/components';
 import { TaskForm } from '@/components/TaskForm';
+import { TodoForm } from '@/components/TodoForm';
+import { TodoCard } from '@/components/TodoCard';
 import useAuthStore from '@/store/authStore';
-import type {
-  CreateTaskInput,
-  CreateTodoInput,
-  Todo,
-  UpdateTodoInput,
-} from '@/types';
+import type { CreateTaskInput } from '@/types/task.type';
+import type { CreateTodoInput, Todo, UpdateTodoInput } from '@/types/todo.type';
+import { errorToast } from '@/utils/toastify';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const DashboardPage = () => {
   const { getUserId, isLoggedIn } = useAuthStore();
   const userId = getUserId();
-  console.log(userId);
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -46,6 +43,10 @@ const DashboardPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] });
       setIsTodoModalOpen(false);
+      setCurrentTodo(null);
+    },
+    onError: (err) => {
+      errorToast(err.message);
     },
   });
 
@@ -54,8 +55,11 @@ const DashboardPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] });
       setIsTodoModalOpen(false);
+      setCurrentTodo(null);
     },
-    onError: () => {},
+    onError: (err) => {
+      errorToast(err.message);
+    },
   });
 
   const deleteTodoMutation = useMutation({
@@ -64,7 +68,9 @@ const DashboardPage = () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] });
       queryClient.invalidateQueries({ queryKey: ['all-tasks'] });
     },
-    onError: () => {},
+    onError: (err) => {
+      errorToast(err.message);
+    },
   });
 
   const createTaskMutation = useMutation({
@@ -74,30 +80,17 @@ const DashboardPage = () => {
       queryClient.invalidateQueries({ queryKey: ['all-tasks'] });
       setIsTaskModalOpen(false);
     },
+    onError: (err) => {
+      errorToast(err.message);
+    },
   });
 
-  const handleTodoFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const title = formData.get('title') as string;
-    const description = formData.get('description') as string;
+  const handleCreateTodo = (todoData: CreateTodoInput) => {
+    createTodoMutation.mutate(todoData);
+  };
 
-    if (currentTodo) {
-      const updateData: UpdateTodoInput = {
-        id: currentTodo.id,
-        title,
-        description,
-        completed: currentTodo.completed,
-      };
-      updateTodoMutation.mutate(updateData);
-    } else {
-      const createData: CreateTodoInput = {
-        title,
-        description,
-        user_id: userId as number,
-      };
-      createTodoMutation.mutate(createData);
-    }
+  const handleUpdateTodo = (todoData: UpdateTodoInput) => {
+    updateTodoMutation.mutate(todoData);
   };
 
   const handleCreateTask = (taskData: CreateTaskInput) => {
@@ -171,78 +164,19 @@ const DashboardPage = () => {
       </div>
 
       {isTodoModalOpen && (
-        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4'>
-          <div className='bg-white rounded-lg shadow-xl w-full max-w-md'>
-            <div className='p-6'>
-              <h2 className='text-xl font-semibold mb-4'>
-                {currentTodo ? 'Edit Todo' : 'Create New Todo'}
-              </h2>
-              <form onSubmit={handleTodoFormSubmit}>
-                <div className='mb-4'>
-                  <label
-                    htmlFor='title'
-                    className='block text-sm font-medium text-gray-700 mb-1'
-                  >
-                    Title *
-                  </label>
-                  <input
-                    type='text'
-                    id='title'
-                    name='title'
-                    defaultValue={currentTodo?.title}
-                    className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                    placeholder='Enter todo title'
-                    required
-                  />
-                </div>
-                <div className='mb-6'>
-                  <label
-                    htmlFor='description'
-                    className='block text-sm font-medium text-gray-700 mb-1'
-                  >
-                    Description
-                  </label>
-                  <textarea
-                    id='description'
-                    name='description'
-                    defaultValue={currentTodo?.description}
-                    rows={3}
-                    className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                    placeholder='Todo description (optional)'
-                  />
-                </div>
-                <div className='flex justify-end gap-3'>
-                  <button
-                    type='button'
-                    onClick={() => setIsTodoModalOpen(false)}
-                    className='px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
-                    disabled={
-                      createTodoMutation.isPending ||
-                      updateTodoMutation.isPending
-                    }
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type='submit'
-                    className='px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed'
-                    disabled={
-                      createTodoMutation.isPending ||
-                      updateTodoMutation.isPending
-                    }
-                  >
-                    {createTodoMutation.isPending ||
-                    updateTodoMutation.isPending
-                      ? 'Saving...'
-                      : currentTodo
-                      ? 'Update Todo'
-                      : 'Create Todo'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
+        <TodoForm
+          todo={currentTodo || undefined}
+          userId={userId as number}
+          handleCreateTodo={handleCreateTodo}
+          handleUpdateTodo={handleUpdateTodo}
+          onClose={() => {
+            setIsTodoModalOpen(false);
+            setCurrentTodo(null);
+          }}
+          isLoading={
+            createTodoMutation.isPending || updateTodoMutation.isPending
+          }
+        />
       )}
 
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
